@@ -1,0 +1,1 @@
+A utility for measureing the width of a character
