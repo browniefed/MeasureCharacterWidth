@@ -3,7 +3,7 @@
      * This class is used to measure widths of single characters and cache them for the future.
      * Given a style string, calculate for all characters, cache then return the requested character
      */
-    var MeasureText =  (function () {
+    var MeasureText = (function () {
 
         var cache = {},
             emptySpan = document.createElement('span'),
@@ -13,17 +13,17 @@
             };
 
 
-        function getCharacterWidth(style, character, recalculate) {
+        function getCharacterWidth(character, style, recalculate) {
             style = sortStyle(style);
             cache[style] = cache[style] || {};
             if (cache[style][character] && !recalculate) {
                 return cache[style][character];
             } else {
-                return cache[style][character] = measureCharacter(style, character);
+                return cache[style][character] = measureCharacter(character, style);
             }
         }
 
-        function measureCharacter(style, character) {
+        function measureCharacter(character, style) {
             emptySpan.style.cssText = defaultStyle + style;
             if (replaceCharacters[character]) {
                 emptySpan.innerHTML = replaceCharacters[character];
@@ -33,14 +33,14 @@
             return emptySpan.offsetWidth;
         }
 
-        function buildForRange(style, startChar, endChar) {
+        function buildForRange(startChar, endChar, style) {
             var startCode = startChar.charCodeAt(0),
                 endCode = startCode.charCodeAt(0);
 
             if (startChar > endChar) {
-                buildForString(stringFromRange(endChar, startChar));
+                buildForString(stringFromRange(endChar, startChar), style);
             } else {
-                buildForString(stringFromRange(endChar, startChar));
+                buildForString(stringFromRange(endChar, startChar), style);
             }
         }
 
@@ -49,15 +49,26 @@
 
         }
 
-        function buildForString(style, string) {
+        function buildForString(string, style) {
             var characters = string.split(''),
                 stringLength = 0;
 
             characters.forEach(function (character) {
-                stringLength += measureCharacter(style, character);
+                stringLength += measureCharacter(character, style);
             });
 
             return stringLength;
+        }
+
+        function buildForEachCharacter(string, style) {
+            var characters = string.split(''),
+                stringFragments = [];
+
+            characters.forEach(function (character) {
+                stringFragments.push({character: character, width: measureCharacter(character, style)});
+            });
+
+            return stringFragments;
         }
 
         function sortStyle(style) {
@@ -88,7 +99,8 @@
         return {
             getCharacterWidth: getCharacterWidth,
             buildForRange: buildForRange,
-            buildForString: buildForString
+            buildForString: buildForString,
+            buildForEachCharacter: buildForEachCharacter
         };
 
     }())
